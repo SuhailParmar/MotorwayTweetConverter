@@ -13,3 +13,5 @@ This is the 2nd component of the 'Motorway event system'. This component binds t
 ```
 
 Will be broken down by the day, time, year, the motorway, the junction, the id, the nearest city, the reason etc.
+
+The aim is to have the rabbit listener run on a seperate thread to the mining aspect.
