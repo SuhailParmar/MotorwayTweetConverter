@@ -18,4 +18,8 @@ class TestTweetMiner:
         with(raises(LookupError)):
             assert self.tm.get_motorway_number()
 
-    
+    def test_converts_datetime_to_isoformat(self):
+        self.tm.tweet = {"created_at": "Wed Oct 10 19:13:35 +0000 2018"}
+        assert self.tm.convert_datetime_to_isoformat() == "2018-10-10T19:13:35"
+        self.tm.tweet = {"created_at": "Mon May 11 16:02:30 +0000 1997"}
+        assert self.tm.convert_datetime_to_isoformat() == "1997-05-11T16:02:30"

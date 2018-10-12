@@ -1,4 +1,6 @@
-import re
+from re import compile
+from time import strptime, mktime
+from datetime import datetime
 
 
 class TweetMiner:
@@ -18,7 +20,7 @@ class TweetMiner:
         """
         value = self.tweet[tweet_field]
         # Strip everything apart from a MX or MXX
-        pattern = re.compile("[M][0-9]{1,2}")
+        pattern = compile("[M][0-9]{1,2}")
         motorway = pattern.search(value)
 
         if not motorway:
@@ -29,6 +31,15 @@ class TweetMiner:
         motorway = motorway.group(0)
         motorway_number = motorway.replace("M", "", 1)
         return motorway_number
+
+    def convert_datetime_to_isoformat(self):
+        """
+        Typical twitter_datetime = (Wed Oct 10 19:13:35 +0000 2018)
+        """
+        tweet_datetime = self.tweet["created_at"]
+        time_pattern = strptime(tweet_datetime, "%a %b %d %H:%M:%S +0000 %Y")
+        dt = datetime.fromtimestamp(mktime(time_pattern))
+        return dt.isoformat()
 
 
 class Event:
