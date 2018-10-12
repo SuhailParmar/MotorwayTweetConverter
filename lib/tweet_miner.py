@@ -10,6 +10,11 @@ class TweetMiner:
     """
 
     def __init__(self, tweet):
+        """
+        A typical tweet is split into 3 sections:
+        "(Location) - (Reason) - (Link to further info)
+        The location
+        """
         self.tweet = tweet
         self.event = Event
 
@@ -58,6 +63,40 @@ class TweetMiner:
 
         return time_block
 
+    def get_reported_junction(self):
+        payload = self.tweet["payload"]
+
+        # Spaced to prevent splitting cities e.g. Stoke-On-Trent
+        split_payload = payload.split(" - ")
+        location = split_payload[0]
+
+        # Strip everything apart from a JX or JXX
+        pattern = compile("[J][0-9]{1,2}")
+        junctions = pattern.findall(location)
+
+        if len(junctions) < 1:
+            print('Couldnt extract junction from payload: {}'.format(
+                payload))
+            raise LookupError
+
+        return junctions
+
+    def get_direction_of_incident(self):
+        """
+        direction: (east/north/west/south)bound
+        """
+        value = self.tweet["payload"]
+        pattern = compile("[a-z]{4,5}bound")
+        direction = pattern.search(value)
+
+        if not direction:
+            print('Couldnt extract direction from payload:{}'.format(
+                value))
+            raise LookupError
+
+        direction = direction.group(0)
+        return direction[0]  # The first letter suffices (nesw)
+
 
 class Event:
     # The mined tweet output
@@ -75,10 +114,10 @@ class Event:
             "seconds": -1,
             # Data block
             "data": {
-                "junction": -1,
+                "junction": [],  # Could be multiple Junctions affected
                 "direction": "",  # N,E,S,W
                 "closest_city": "",
-                "reason": "",
+                "incident": "",
                 "link": ""
             }
         }

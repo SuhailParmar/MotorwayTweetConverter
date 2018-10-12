@@ -42,3 +42,51 @@ class TestTweetMiner:
             "minutes": 24,
             "seconds": 15
         }
+
+    def test_get_reported_junction(self):
+        self.tm.tweet = {
+            "payload": "#M6 J2 southbound exit (Coventry) - Broken down vehicle - Full details at https://t.co/nkWL91Ro1g (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_reported_junction() == ["J2"]
+
+    def test_get_reported_junctions(self):
+        self.tm.tweet = {
+            "payload": "#M6 northbound between J6 (Birmingham) and J7 (Birmingham (N) / Walsall) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_reported_junction() == ["J6", "J7"]
+
+    def test_get_not_junction(self):
+        self.tm.tweet = {
+            "payload": "#M6 northbound between (Birmingham) and (Birmingham (N) / Walsall) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        with raises(LookupError):
+            assert self.tm.get_reported_junction()
+
+    def test_get_direction_of_incident(self):
+
+        self.tm.tweet = {
+            "payload": "#M6 northbound between J6 (Birmingham) and J7 (Birmingham (N) / Walsall) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_direction_of_incident() == "n"
+
+        self.tm.tweet = {
+            "payload": "#M6 eastbound between J6 (Birmingham) and J7 (Birmingham (N) / Walsall) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_direction_of_incident() == "e"
+
+        self.tm.tweet = {
+            "payload": "#M6 southbound between J6 (Birmingham) and J7 (Birmingham (N) / Walsall) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_direction_of_incident() == "s"
+
+        self.tm.tweet = {
+            "payload": "#M6 westbound between J6 (Birmingham) and J7 (Birmingham (N) / Walsall) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_direction_of_incident() == "w"
