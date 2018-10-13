@@ -1,9 +1,9 @@
-from lib.tweet_miner import TweetMiner
 from pytest import raises
+from lib.tweet_miner import TweetMiner
 
 
 class TestTweetMiner:
-
+    # TODO Change from assignment to a[a] = b
     tm = TweetMiner({"screen_name": "Traffic_M6"})
 
     def test_motorway_from_screen_name(self):
@@ -90,3 +90,20 @@ class TestTweetMiner:
         }
 
         assert self.tm.get_direction_of_incident() == "w"
+
+    def test_get_closest_city(self):
+
+        self.tm.tweet = {
+            "payload": "#M6 westbound J6 (Birmingham) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_closest_city() == ["Birmingham"]
+
+    def test_get_closest_cities(self):
+
+        self.tm.tweet = {
+            "payload": "#M6 westbound between J6 (Birmingham) and J7 (Birmingham (N) / Walsall) - Congestion - Full details at https://www.MotorwayCameras.co.uk/Traffic#M6  (Updated every 5 minutes)"
+        }
+
+        assert self.tm.get_closest_city(
+        ) == ["Birmingham", "Birmingham (N) / Walsall"]
