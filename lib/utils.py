@@ -7,9 +7,7 @@ class Utils:
         should be: ["Birmingham", "Birmingham (N) / Walsall"]
         """
         contents = []
-
         index = 0
-        index2 = 0
         last_index = len(s)
 
         while index < last_index:
@@ -31,6 +29,7 @@ class Utils:
                             contents.append(word)
                             index = index2
                             break
+
                     word += char2
                     continue
 

@@ -1,6 +1,7 @@
 from re import compile
 from time import strptime, mktime
 from datetime import datetime
+from lib.utils import Utils
 
 
 class TweetMiner:
@@ -10,13 +11,47 @@ class TweetMiner:
     """
 
     def __init__(self, tweet):
+        self.tweet = tweet  # {created_at: x, id: x, payload: x}
+        self.event = Event
+
         """
-        A typical tweet is split into 3 sections:
+        self.location = ""
+        self.reason = ""
+        self.further_info = ""
+        self.__split__()
+        """
+
+    """
+    def __split__(self):
+
+        A typical Traffic_Mx tweet is split into 3 sections:
         "(Location) - (Reason) - (Link to further info)
         The location
+
+
+        if "payload" in self.tweet:  # Prevent KeyError
+            payload = self.tweet["payload"]
+            arr = payload.split(" - ")
+            self.location = arr[0]
+            self.reason = arr[1]
+            self.further_info = arr[2]
+    """
+
+    def get_direction_of_incident(self):
         """
-        self.tweet = tweet
-        self.event = Event
+        direction: (east/north/west/south)bound
+        """
+        value = self.tweet["payload"]
+        pattern = compile("[a-z]{4,5}bound")
+        direction = pattern.search(value)
+
+        if not direction:
+            print('Couldnt extract direction from payload:{}'.format(
+                value))
+            raise LookupError
+
+        direction = direction.group(0)
+        return direction[0]  # The first letter suffices (nesw)
 
     def get_motorway_number(self, tweet_field="screen_name"):
         """
@@ -81,21 +116,21 @@ class TweetMiner:
 
         return junctions
 
-    def get_direction_of_incident(self):
-        """
-        direction: (east/north/west/south)bound
-        """
-        value = self.tweet["payload"]
-        pattern = compile("[a-z]{4,5}bound")
-        direction = pattern.search(value)
+    def get_closest_city(self):
+        payload = self.tweet["payload"]
 
-        if not direction:
-            print('Couldnt extract direction from payload:{}'.format(
-                value))
+        # Spaced to prevent splitting cities e.g. Stoke-On-Trent
+        split_payload = payload.split(" - ")
+        location = split_payload[0]
+
+        nearest_cities = Utils.extract_contents_of_nested_brackets(location)
+
+        if len(nearest_cities) < 1:
+            print('Couldnt extract nearest_cities from payload: {}'.format(
+                payload))
             raise LookupError
 
-        direction = direction.group(0)
-        return direction[0]  # The first letter suffices (nesw)
+        return nearest_cities
 
 
 class Event:
@@ -116,7 +151,7 @@ class Event:
             "data": {
                 "junction": [],  # Could be multiple Junctions affected
                 "direction": "",  # N,E,S,W
-                "closest_city": "",
+                "closest_cities": [],  # if multiple junctions there'll be multiple close cities
                 "incident": "",
                 "link": ""
             }
