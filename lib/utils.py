@@ -30,7 +30,7 @@ class Utils:
                             index = index2
                             break
 
-                    word += char2
+                    word += char2  # The bracket is nested so include it
                     continue
 
         return contents
