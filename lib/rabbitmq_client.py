@@ -23,6 +23,24 @@ class RabbitMQClient:
         self.vhost = config.rabbit_vhost
         self.type = 'application/json'
 
+    def consume(self, callback):
+        connection = self.connect_to_mq()
+        channel = connection.channel()
+
+        self.declare_queue(channel)
+        self.bind_queue_to_exchange(channel)
+
+        # Basic consume reads the message off the queue with
+        # ch, method, properties, body as the params
+        channel.basic_consume(callback,
+                              queue=self.queue,
+                              no_ack=True)
+
+        print('Bound to queue: {}. Waiting for messages.'.format
+              (self.queue))
+
+        channel.start_consuming()
+
     def connect_to_mq(self):
         mq_logger.info('Connecting to mq...')
         credentials = pika.PlainCredentials(self.username, self.password)
@@ -37,26 +55,6 @@ class RabbitMQClient:
             exit(1)
 
         return connection
-
-    def consume_from_queue(self, global_queue):
-        # Read from a rabbit queue and place on an internal queue
-        # global_queue = python.queue.queue -------^
-        channel = self.connect_to_mq().channel()
-        queue = self.declare_queue(channel)
-        self.bind_queue_to_exchange(channel)
-
-        # Basic consume reads the message off the queue with
-        # ch, method, properties, body as the params
-        # Partial is used as a workaround to place the body
-        # of the message onto the global_queue
-        channel.basic_consume(partial(self.callback, global_queue=global_queue),
-                              queue=queue,
-                              no_ack=True)
-
-        mq_logger.info('Bound to queue: {}. Waiting for messages.'.format
-                       (self.queue))
-
-        channel.start_consuming()
 
     def declare_queue(self, channel, queue_name=config.rabbit_queue):
         """
@@ -110,4 +108,3 @@ class RabbitMQClient:
                 raise
 
         channel.close()
-
