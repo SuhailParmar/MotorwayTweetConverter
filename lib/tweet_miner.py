@@ -3,6 +3,7 @@ from time import strptime, mktime
 from datetime import datetime
 from lib.utils import Utils
 from lib.file_handler import FileHandler
+from lib.exceptions import *
 
 
 class TweetMiner:
@@ -25,25 +26,28 @@ class TweetMiner:
     def __split__(self):
 
         if "payload" not in self.tweet:  # Prevent KeyError
-            print('Unable to split tweet...')
-        else:
-            payload = self.tweet["payload"]
-            # Spaced to prevent splitting cities e.g. Stoke-On-Trent
-            arr = payload.split(" - ")
-            self.payload_location = arr[0]
-            self.payload_reason = arr[1]
-            self.payload_further_info = arr[2]
+            raise MissingPayloadException(self.tweet)
+
+        payload = self.tweet["payload"]
+        # Spaced to prevent splitting cities e.g. Stoke-On-Trent
+        arr = payload.split(" - ")
+        if len(arr) != 3:
+            raise InvalidPayloadException(payload)
+        self.payload_location = arr[0]
+        self.payload_reason = arr[1]
+        self.payload_further_info = arr[2]
 
     def convert_datetime_to_timeblock(self):
         """
         Typical twitter_datetime = (Wed Oct 10 19:13:35 +0000 2018)
         """
         tweet_datetime = self.tweet["created_at"]
+
         # Lazy check correct format
         if len(tweet_datetime.split(" ")) != 6:
             print('Couldnt extract datetime from {}'.format(
                 tweet_datetime))
-            raise ValueError
+            raise DatetimeException
 
         time_block = {}
         time_block["time_day_worded"] = tweet_datetime.split(" ")[0]
