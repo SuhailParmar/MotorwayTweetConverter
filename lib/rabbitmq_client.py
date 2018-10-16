@@ -1,7 +1,7 @@
 import pika
 import logging
 import queue
-
+from functools import partial
 from json import dumps, loads
 from sys import exit
 
@@ -12,7 +12,7 @@ mq_logger = logging.getLogger("RabbitMqClient")
 
 class RabbitMQClient:
 
-    def __init__(self, internal_queue):
+    def __init__(self):
         self.username = config.rabbit_username
         self.password = config.rabbit_password
         self.host = config.rabbit_host
@@ -22,7 +22,6 @@ class RabbitMQClient:
         self.routing_key = config.rabbit_routing_key
         self.vhost = config.rabbit_vhost
         self.type = 'application/json'
-        self.internal_queue = internal_queue  # Global msg Q
 
     def connect_to_mq(self):
         mq_logger.info('Connecting to mq...')
@@ -39,13 +38,18 @@ class RabbitMQClient:
 
         return connection
 
-    def consume_from_queue(self):
+    def consume_from_queue(self, global_queue):
+        # Read from a rabbit queue and place on an internal queue
+        # global_queue = python.queue.queue -------^
+        channel = self.connect_to_mq().channel()
+        queue = self.declare_queue(channel)
+        self.bind_queue_to_exchange(channel)
 
-        queue, channel = self.declare_and_bind_queue()
-        # Overridden the callback with our custom callback
-        channel.basic_consume(lambda ch, method, properties, body:
-                              self.callback(ch, method, properties,
-                                            body, self.internal_queue),
+        # Basic consume reads the message off the queue with
+        # ch, method, properties, body as the params
+        # Partial is used as a workaround to place the body
+        # of the message onto the global_queue
+        channel.basic_consume(partial(self.callback, global_queue=global_queue),
                               queue=queue,
                               no_ack=True)
 
@@ -54,31 +58,34 @@ class RabbitMQClient:
 
         channel.start_consuming()
 
-    def declare_and_bind_queue(self, q=config.rabbit_queue):
+    def declare_queue(self, channel, queue_name=config.rabbit_queue):
         """
         If the queue doesn't exists create it and
         bind to to an exchange
         """
-        cn = self.connect_to_mq()
-        channel = cn.channel()
-        result = channel.queue_declare(queue=self.queue)
-
-        if result:
-            print("Connected!")
-        else:
-            print("Unable to declare queue:{}".format(q))
+        try:
+            channel.queue_declare(queue=self.queue)
+        except Exception as e:
+            print(e)
+            print("Unable to declare queue:{}".format(queue_name))
             exit(1)
 
-        bound = channel.queue_bind(queue=q, exchange=self.exchange,
-                                   routing_key=self.routing_key)
-        if bound:
-            print("Bound!")
-        else:
+    def bind_queue_to_exchange(self, channel):
+        """
+        channel - Can be extracted from the connection
+        queue   - Once a queue is declared
+        """
+
+        try:
+            channel.queue_bind(queue=self.queue, exchange=self.exchange,
+                               routing_key=self.routing_key)
+        except Exception as e:
+            print(e)
             print("Unable to bind queue:{} to exchange:{1} with RK:{2}".format(
-                q, self.exchange, self.routing_key))
+                self.queue, self.exchange, self.routing_key))
             exit(1)
 
-        return result.method.queue, channel
+        return
 
     def publish_to_mq(self, tweets, rk=config.rabbit_routing_key):
         """
@@ -104,8 +111,3 @@ class RabbitMQClient:
 
         channel.close()
 
-    @staticmethod
-    def callback(ch, method, properties, body, internal_queue):
-        # mq_logger.debug
-        print('Picked up: {}'.format(str(body)))
-        return internal_queue.put(body)

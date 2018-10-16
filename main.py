@@ -1,27 +1,40 @@
 from lib.rabbitmq_client import RabbitMQClient
 from lib.tweet_miner import TweetMiner
-from lib.threads import ConsumerThread, MiningThread, INBOUND_MSG_QUEUE
+from lib.threads import ConsumerThread, INBOUND_MSG_QUEUE
 from time import sleep
 import queue
-
-MSG_QUEUE = queue.Queue(0)
+from json import loads
+from multiprocessing import Process
 
 
 def callback(ch, method, properties, body):
     # mq_logger.debug
     print('Picked up: {}'.format(str(body)))
-    return MSG_QUEUE.put(body)
+    tweet = loads(body)
+
+    tm = TweetMiner(tweet)
+    event = tm.return_event_from_tweet()
+    print("{}".format(event))
 
 
 def main():
 
-    threads = [
-        ConsumerThread(queue=MSG_QUEUE),
-        MiningThread(queue=MSG_QUEUE)
-    ]
+    mq = RabbitMQClient()
+    channel = mq.connect_to_mq().channel()
 
-    threads[0].start()
-    threads[1].run()
+    mq.declare_queue(channel)
+    mq.bind_queue_to_exchange(channel)
+
+    # Basic consume reads the message off the queue with
+    # ch, method, properties, body as the params
+    channel.basic_consume(callback,
+                          queue=mq.queue,
+                          no_ack=True)
+
+    print('Bound to queue: {}. Waiting for messages.'.format
+          (mq.queue))
+
+    channel.start_consuming()
 
 
 main()
