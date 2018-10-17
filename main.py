@@ -4,34 +4,40 @@ from time import sleep
 import queue
 from json import loads
 from multiprocessing import Process
-from lib.exceptions import *
+from lib.exceptions import MissingPayloadException, InvalidPayloadException
+import logging
+from lib.logger import Logger
+from json import dumps
+Logger.initiate_logger()
+main_logger = logging.getLogger("Main")
+mq = RabbitMQClient()
+
 
 # Called when a message arrives onto the queue
-
-
 def callback(ch, method, properties, body):
     # mq_logger.debug
-    print('Picked up: {}'.format(str(body)))
+    main_logger.info('Picked up: {}'.format(str(body)))
 
     try:
         tweet = loads(body)
     except Exception:
-        print("Unable to convert {} into json".format(body))
+        main_logger.error("Unable to convert {} into json".format(body))
         return
 
     try:
         tm = TweetMiner(tweet)
+        event = tm.return_event_from_tweet()
     except (MissingPayloadException, InvalidPayloadException) as e:
-        print(e)
+        main_logger.error(e)
+        mq.dead_letter_tweet([tweet])
         return
 
-    event = tm.return_event_from_tweet()
-    print("{}".format(event))
+    main_logger.info("Successfully mined tweet into Event: {}".format(
+        dumps(event, indent=4, sort_keys=True)))
 
 
 def main():
 
-    mq = RabbitMQClient()
     mq.consume(callback)
 
 

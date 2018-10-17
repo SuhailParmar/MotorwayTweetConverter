@@ -4,6 +4,9 @@ from datetime import datetime
 from lib.utils import Utils
 from lib.file_handler import FileHandler
 from lib.exceptions import *
+import logging
+
+tm_logger = logging.getLogger("TweetMiner")
 
 
 class TweetMiner:
@@ -45,7 +48,7 @@ class TweetMiner:
 
         # Lazy check correct format
         if len(tweet_datetime.split(" ")) != 6:
-            print('Couldnt extract datetime from {}'.format(
+            tm_logger.error('Couldnt extract datetime from {}'.format(
                 tweet_datetime))
             raise DatetimeException
 
@@ -73,7 +76,7 @@ class TweetMiner:
         direction = pattern.search(value)
 
         if not direction:
-            print('Couldnt extract direction from payload:{}'.format(
+            tm_logger.error('Couldnt extract direction from payload:{}'.format(
                 value))
             raise LookupError
 
@@ -94,7 +97,7 @@ class TweetMiner:
         motorway = pattern.search(value)
 
         if not motorway:
-            print('Couldnt extract motorway from {0}:{1}'.format(
+            tm_logger.error('Couldnt extract motorway from {0}:{1}'.format(
                 tweet_field, value))
             raise LookupError
 
@@ -112,7 +115,7 @@ class TweetMiner:
         junctions = pattern.findall(self.payload_location)
 
         if len(junctions) < 1:
-            print('Couldnt extract junction from payload: {}'.format(
+            tm_logger.error('Couldnt extract junction from payload: {}'.format(
                 self.payload_location))
             raise LookupError
 
@@ -128,7 +131,7 @@ class TweetMiner:
             self.payload_location)
 
         if len(nearest_cities) < 1:
-            print('Couldnt extract nearest_cities from payload: {}'.format(
+            tm_logger.error('Couldnt extract nearest_cities from payload: {}'.format(
                 self.payload_location))
             raise LookupError
 
