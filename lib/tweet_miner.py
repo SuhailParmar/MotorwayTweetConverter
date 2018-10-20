@@ -1,4 +1,5 @@
 from re import compile
+from json import dumps
 from time import strptime, mktime
 from datetime import datetime
 from lib.utils import Utils
@@ -154,4 +155,9 @@ class TweetMiner:
         time_block = self.convert_datetime_to_timeblock()
         event.update(time_block)
 
-        return event
+        tm_logger.info("Successfully mined tweet into Event: {}".format(
+            dumps(event, indent=4, sort_keys=True)))
+
+        event_as_json_string = dumps(event)
+
+        return event_as_json_string
