@@ -7,7 +7,6 @@ from multiprocessing import Process
 from lib.exceptions import MissingPayloadException, InvalidPayloadException
 import logging
 from lib.logger import Logger
-from json import dumps
 Logger.initiate_logger()
 main_logger = logging.getLogger("Main")
 mq = RabbitMQClient()
@@ -15,8 +14,7 @@ mq = RabbitMQClient()
 
 # Called when a message arrives onto the queue
 def callback(ch, method, properties, body):
-    # mq_logger.debug
-    main_logger.info('Picked up: {}'.format(str(body)))
+    main_logger.debug('Picked up: {}'.format(str(body)))
 
     try:
         tweet = loads(body)
@@ -27,13 +25,11 @@ def callback(ch, method, properties, body):
     try:
         tm = TweetMiner(tweet)
         event = tm.return_event_from_tweet()
+        mq.publish_event_to_mq(event)
     except (MissingPayloadException, InvalidPayloadException) as e:
         main_logger.error(e)
         mq.dead_letter_tweet([tweet])
         return
-
-    main_logger.info("Successfully mined tweet into Event: {}".format(
-        dumps(event, indent=4, sort_keys=True)))
 
 
 def main():
