@@ -61,7 +61,8 @@ class RabbitMQClient:
         return connection
 
     def dead_letter_tweet(self, tweet):
-        mq_logger.error("Dead lettering tweet '{}'".format(tweet))
+        tweet = dumps(tweet) # Convert to string
+        mq_logger.warn("Dead lettering tweet '{}'".format(tweet))
         self.publish_event_to_mq(tweet, rk=self.dl_routing_key)
 
     def publish_event_to_mq(self, event, rk=config.rabbit_routing_key):

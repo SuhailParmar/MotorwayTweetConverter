@@ -28,7 +28,7 @@ def callback(ch, method, properties, body):
         mq.publish_event_to_mq(event)
     except (MissingPayloadException, InvalidPayloadException) as e:
         main_logger.error(e)
-        mq.dead_letter_tweet([tweet])
+        mq.dead_letter_tweet(tweet)
         return
 
 
