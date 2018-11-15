@@ -24,7 +24,8 @@ class Utils:
                     index2 += 1
 
                     if char2 == ')':
-                        # Check if all of the nested brackets are accounted for
+                        # Check if all of the nested brackets are accounted for meaning
+                        # The scanner has found the outmost bracket
                         if word.count('(') == word.count(')'):
                             contents.append(word)
                             index = index2

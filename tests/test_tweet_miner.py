@@ -1,6 +1,6 @@
 from pytest import raises
 from lib.tweet_miner import TweetMiner
-
+from json import loads
 
 class TestTweetMiner:
     """
@@ -114,6 +114,16 @@ class TestTweetMiner:
         self.tm.payload_reason = "Broken down vehicle"
         assert self.tm.get_reason_for_incident() == "broken down vehicle"
 
+    def test_returned_event_from_tweet_is_a_string(self):
+        self.tm =\
+            TweetMiner({"screen_name": "Traffic_M6",
+                        "id": 1,
+                        "created_at": "Wed Oct 10 19:13:35 +0000 2018",
+                        "payload": ("#M6 J2 southbound exit (Coventry) - Broken down vehicle - Full details at https://t.co/nkWL91Ro1g (Updated every 5 minutes)")})
+
+        event = self.tm.return_event_from_tweet()
+        assert isinstance(event, str)
+
     def test_returned_event_from_tweet(self):
         self.tm =\
             TweetMiner({"screen_name": "Traffic_M6",
@@ -122,6 +132,8 @@ class TestTweetMiner:
                         "payload": ("#M6 J2 southbound exit (Coventry) - Broken down vehicle - Full details at https://t.co/nkWL91Ro1g (Updated every 5 minutes)")})
 
         event = self.tm.return_event_from_tweet()
+        event = loads(event)
+
         assert event["motorway"] == 6
         assert event["id"] == 1
         assert event["junction"] == [2]

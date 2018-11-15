@@ -1,8 +1,13 @@
 from re import compile
+from json import dumps
 from time import strptime, mktime
 from datetime import datetime
 from lib.utils import Utils
 from lib.file_handler import FileHandler
+from lib.exceptions import *
+import logging
+
+tm_logger = logging.getLogger("TweetMiner")
 
 
 class TweetMiner:
@@ -25,25 +30,28 @@ class TweetMiner:
     def __split__(self):
 
         if "payload" not in self.tweet:  # Prevent KeyError
-            print('Unable to split tweet...')
-        else:
-            payload = self.tweet["payload"]
-            # Spaced to prevent splitting cities e.g. Stoke-On-Trent
-            arr = payload.split(" - ")
-            self.payload_location = arr[0]
-            self.payload_reason = arr[1]
-            self.payload_further_info = arr[2]
+            raise MissingPayloadException(self.tweet)
+
+        payload = self.tweet["payload"]
+        # Spaced to prevent splitting cities e.g. Stoke-On-Trent
+        arr = payload.split(" - ")
+        if len(arr) != 3:
+            raise InvalidPayloadException(payload)
+        self.payload_location = arr[0]
+        self.payload_reason = arr[1]
+        self.payload_further_info = arr[2]
 
     def convert_datetime_to_timeblock(self):
         """
         Typical twitter_datetime = (Wed Oct 10 19:13:35 +0000 2018)
         """
         tweet_datetime = self.tweet["created_at"]
+
         # Lazy check correct format
         if len(tweet_datetime.split(" ")) != 6:
-            print('Couldnt extract datetime from {}'.format(
+            tm_logger.error('Couldnt extract datetime from {}'.format(
                 tweet_datetime))
-            raise ValueError
+            raise DatetimeException
 
         time_block = {}
         time_block["time_day_worded"] = tweet_datetime.split(" ")[0]
@@ -69,7 +77,7 @@ class TweetMiner:
         direction = pattern.search(value)
 
         if not direction:
-            print('Couldnt extract direction from payload:{}'.format(
+            tm_logger.error('Couldnt extract direction from payload:{}'.format(
                 value))
             raise LookupError
 
@@ -90,7 +98,7 @@ class TweetMiner:
         motorway = pattern.search(value)
 
         if not motorway:
-            print('Couldnt extract motorway from {0}:{1}'.format(
+            tm_logger.error('Couldnt extract motorway from {0}:{1}'.format(
                 tweet_field, value))
             raise LookupError
 
@@ -108,7 +116,7 @@ class TweetMiner:
         junctions = pattern.findall(self.payload_location)
 
         if len(junctions) < 1:
-            print('Couldnt extract junction from payload: {}'.format(
+            tm_logger.error('Couldnt extract junction from payload: {}'.format(
                 self.payload_location))
             raise LookupError
 
@@ -124,7 +132,7 @@ class TweetMiner:
             self.payload_location)
 
         if len(nearest_cities) < 1:
-            print('Couldnt extract nearest_cities from payload: {}'.format(
+            tm_logger.error('Couldnt extract nearest_cities from payload: {}'.format(
                 self.payload_location))
             raise LookupError
 
@@ -147,4 +155,9 @@ class TweetMiner:
         time_block = self.convert_datetime_to_timeblock()
         event.update(time_block)
 
-        return event
+        tm_logger.info("Successfully mined tweet into Event: {}".format(
+            dumps(event, indent=4, sort_keys=True)))
+
+        event_as_json_string = dumps(event)
+
+        return event_as_json_string
