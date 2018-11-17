@@ -19,7 +19,7 @@ def callback(ch, method, properties, body):
     main_logger.debug('Picked up: {}'.format(str(body)))
 
     try:
-        tweet = loads(body) # Convert to Json and pretty log it out
+        tweet = loads(body)  # Convert to Json and pretty log it out
         main_logger.info('Picked up tweet from Rabbit:\n{}'
                          .format(dumps(tweet, indent=4, sort_keys=True)))
     except Exception:
