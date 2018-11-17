@@ -131,9 +131,9 @@ class TweetMiner:
             self.payload_location)
 
         if len(nearest_cities) < 1:
-            tm_logger.error('Couldnt extract nearest_cities from payload: {}'.format(
+            tm_logger.warn('Couldnt extract nearest_cities from payload: {}'.format(
                 self.payload_location))
-            raise LookupError
+            nearest_cities = ['NULL']
 
         return nearest_cities
 
@@ -144,12 +144,12 @@ class TweetMiner:
             datetime.utcnow().isoformat())
 
         event["motorway"] = self.get_motorway_number()
-        event["id"] = self.get_id()
+        event["event_id"] = self.get_id()
         event["junction"] = self.get_reported_junction()
         event["direction"] = self.get_direction_of_incident()
         event["closest_cities"] = self.get_nearest_cities()
         event["reason"] = self.get_reason_for_incident()
-        event["extra_information"] = []
+        event["extra_information"] = ""
 
         time_block = self.convert_datetime_to_timeblock()
         event.update(time_block)

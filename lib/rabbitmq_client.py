@@ -53,36 +53,32 @@ class RabbitMQClient:
 
         try:
             connection = pika.BlockingConnection(parameters)
-            mq_logger.info('Successfully connected to rabbit!')
+            mq_logger.debug('Successfully connected to rabbit!')
         except Exception as e:
             mq_logger.error(e)
             exit(1)
 
         return connection
 
-    def dead_letter_tweet(self, tweet):
-        tweet = dumps(tweet) # Convert to string
+    def dead_letter_tweet(self, tweet, reason):
+        tweet = dumps(tweet)  # Convert to string
         mq_logger.warn("Dead lettering tweet '{}'".format(tweet))
-        self.publish_event_to_mq(tweet, rk=self.dl_routing_key)
 
-    def publish_event_to_mq(self, event, rk=config.rabbit_routing_key):
-        """
-        @event - Generated event from TweetMiner.py
-        """
         channel = self.connect_to_mq().channel()
 
-        mq_logger.debug(
-            'Attempting to publish event {} to rabbit.'.format(event))
-
+        props = pika.BasicProperties(content_type=self.type,
+                                     headers={"reason": reason},
+                                     delivery_mode=1)
         try:
             channel.basic_publish(self.exchange,
-                                  rk,
-                                  event,
-                                  pika.BasicProperties(content_type=self.type,
-                                                       delivery_mode=1))
-            mq_logger.info(
-                "Published Event: {0} to exchange: {1} with key: {2}"
-                .format(event, (self.exchange), rk))
+                                  self.dl_routing_key,
+                                  tweet,
+                                  props
+                                  )
+            mq_logger.debug(
+                "Dead Lettered Event: {0} to exchange: {1} with key: {2}"
+                .format(tweet, (self.exchange), self.dl_routing_key))
+
         except Exception as e:
             mq_logger.error(e)
             raise
