@@ -3,7 +3,6 @@ from json import dumps
 from time import strptime, mktime
 from datetime import datetime
 from lib.utils import Utils
-from lib.file_handler import FileHandler
 from lib.exceptions import *
 import logging
 
