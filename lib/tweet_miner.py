@@ -131,9 +131,9 @@ class TweetMiner:
             self.payload_location)
 
         if len(nearest_cities) < 1:
-            tm_logger.error('Couldnt extract nearest_cities from payload: {}'.format(
+            tm_logger.warn('Couldnt extract nearest_cities from payload: {}'.format(
                 self.payload_location))
-            raise LookupError
+            nearest_cities = ['NULL']
 
         return nearest_cities
 
