@@ -53,7 +53,7 @@ class RabbitMQClient:
 
         try:
             connection = pika.BlockingConnection(parameters)
-            mq_logger.info('Successfully connected to rabbit!')
+            mq_logger.debug('Successfully connected to rabbit!')
         except Exception as e:
             mq_logger.error(e)
             exit(1)
@@ -66,11 +66,8 @@ class RabbitMQClient:
 
         channel = self.connect_to_mq().channel()
 
-        mq_logger.debug(
-            'Attempting to publish event {} to rabbit.'.format(tweet))
-
         props = pika.BasicProperties(content_type=self.type,
-                                     headers={"reason": reason.msg},
+                                     headers={"reason": reason},
                                      delivery_mode=1)
         try:
             channel.basic_publish(self.exchange,
@@ -78,9 +75,10 @@ class RabbitMQClient:
                                   tweet,
                                   props
                                   )
-            mq_logger.info(
+            mq_logger.debug(
                 "Dead Lettered Event: {0} to exchange: {1} with key: {2}"
                 .format(tweet, (self.exchange), self.dl_routing_key))
+
         except Exception as e:
             mq_logger.error(e)
             raise
