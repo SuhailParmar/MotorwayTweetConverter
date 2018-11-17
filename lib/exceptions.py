@@ -1,6 +1,18 @@
 import logging
 
 
+class FailurePostToAPI(Exception):
+    def __init__(self, status_code, msg=None):
+        self.sc = status_code
+        if not msg:
+            self.msg = "Failed To Post To API. HTTPStatus Code:{}".format(
+                status_code)
+        logging.error(self.msg)
+
+    def __str__(self):
+        return "{}".format(self.msg)
+
+
 class MissingPayloadException(Exception):
     def __init__(self, tweet, msg=None):
         if not msg:
