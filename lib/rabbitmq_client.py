@@ -61,25 +61,50 @@ class RabbitMQClient:
         return connection
 
     def dead_letter_tweet(self, tweet, reason):
-        tweet = dumps(tweet)  # Convert to string
         mq_logger.warn("Dead lettering tweet '{}'".format(tweet))
+        tweet = dumps(tweet)  # Convert to string
+        try:
+            self.publish(tweet, self.routing_key, reason)
+        except Exception as e:
+            mq_logger.error(e)
+            raise
+
+    def publish_tweet_to_queue(self, tweet):
+        tweet = dumps(tweet)  # Convert to string
+        mq_logger.debug("Attempting to publish tweet '{}'".format(tweet))
+        try:
+            self.publish(tweet, self.routing_key)
+        except Exception as e:
+            mq_logger.error(e)
+            raise
+
+    def publish(self, tweet, rk, reason=None):
+        headers = {}
+        msg_prefix = "Successfully published"
+        if reason is not None:
+            # If tweet is being dead lettered
+            headers = {"reason": reason}
+            msg_prefix = "Dead lettered"
 
         channel = self.connect_to_mq().channel()
 
         props = pika.BasicProperties(content_type=self.type,
-                                     headers={"reason": reason},
+                                     headers=headers,
                                      delivery_mode=1)
         try:
             channel.basic_publish(self.exchange,
-                                  self.dl_routing_key,
+                                  rk,
                                   tweet,
                                   props
                                   )
-            mq_logger.debug(
-                "Dead Lettered Event: {0} to exchange: {1} with key: {2}"
-                .format(tweet, (self.exchange), self.dl_routing_key))
+
+            mq_logger.info(
+                "{0} Event: {1} to exchange: {2} with key: {3}"
+                .format(msg_prefix, tweet, (self.exchange), rk))
 
         except Exception as e:
             mq_logger.error(e)
+            channel.close()
             raise
+
         channel.close()

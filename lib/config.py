@@ -4,6 +4,9 @@ api_base_url = getenv('API_BASE_URL', 'localhost')
 api_post_endpoint = getenv('API_POST_ENDPOINT', 'api/events/')
 api_port = getenv('API_PORT', 8000)
 
+api_client_id = getenv('API_ID', "mtc01xioanXkoaosX")  # Not real value
+api_client_secret = getenv('API_SECRET', "mtc01sds3crtedia8D")  # Not real value
+
 rabbit_host = getenv('MQ_HOST', 'localhost')
 rabbit_port = getenv('MQ_PORT', 5672)
 rabbit_source_queue = getenv('MQ_SOURCE_QUEUE', 'M6_Raw_Events')
