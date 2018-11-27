@@ -33,6 +33,7 @@ def callback(ch, method, properties, body):
         tm = TweetMiner(tweet)
         event = tm.return_event_from_tweet()
         req.post_to_api(event)
+        mq.publish_tweet_to_queue(event)
 
     except (MissingPayloadException, InvalidPayloadException,
             FailurePostToAPI) as exception:
