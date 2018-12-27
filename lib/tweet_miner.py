@@ -154,7 +154,8 @@ class TweetMiner:
         time_block = self.convert_datetime_to_timeblock()
         event.update(time_block)
 
-        tm_logger.info("Successfully mined tweet into Event: {}".format(
+        tm_logger.info("Successfully mined tweet!")
+        tm_logger.debug("Event (mined tweet): {}".format(
             dumps(event, indent=4, sort_keys=True)))
 
         event_as_json_string = dumps(event)
