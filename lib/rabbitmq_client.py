@@ -64,10 +64,10 @@ class RabbitMQClient:
         mq_logger.warn("Dead lettering tweet '{}'".format(tweet))
         tweet = dumps(tweet)  # Convert to string
         try:
-            self.publish(tweet, self.routing_key, reason)
+            self.publish(tweet, self.dl_routing_key, reason)
         except Exception as e:
             mq_logger.error(e)
-            raise
+            exit(1)
 
     def publish_tweet_to_queue(self, tweet):
         tweet = dumps(tweet)  # Convert to string
