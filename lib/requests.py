@@ -44,7 +44,6 @@ class Requests():
         return content['access_token']
 
     def post_to_api(self, data):
-        mq_logger.info('Posting Event to API...')
         token = self.get_auth_token()
 
         response = post(self.uri, headers={

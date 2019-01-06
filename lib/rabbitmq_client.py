@@ -99,8 +99,8 @@ class RabbitMQClient:
                                   )
 
             mq_logger.info(
-                "{0} Event: {1} to exchange: {2} with key: {3}"
-                .format(msg_prefix, tweet, (self.exchange), rk))
+                "{0} Event: {1} \nto exchange: {2} with key: {3}"
+                .format(msg_prefix, loads(tweet), (self.exchange), rk))
 
         except Exception as e:
             mq_logger.error(e)

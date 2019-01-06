@@ -32,8 +32,10 @@ def callback(ch, method, properties, body):
         # Attempt to mine the tweet
         tm = TweetMiner(tweet)
         event = tm.return_event_from_tweet()
+        main_logger.info('Posting Mined Tweet (Event) to API...')
         req.post_to_api(event)
 
+        main_logger.info('Publishing mined tweet to RabbitMQ...')
         mq.publish_tweet_to_queue(event)
 
     except (MissingPayloadException, InvalidPayloadException,
