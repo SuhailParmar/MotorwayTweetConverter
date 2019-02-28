@@ -59,11 +59,11 @@ class TweetMiner:
         dt = datetime.fromtimestamp(mktime(time_pattern))
 
         time_block["time_timestamp"] = dt.isoformat()
-        time_block["time_day_numerical"] = dt.day
-        time_block["time_year"] = dt.year
-        time_block["time_hour"] = dt.hour
-        time_block["time_minutes"] = dt.minute
-        time_block["time_seconds"] = dt.second
+        time_block["time_day"] = str(dt.day)
+        time_block["time_year"] = str(dt.year)
+        time_block["time_hour"] = str(dt.hour)
+        time_block["time_minutes"] = str(dt.minute)
+        time_block["time_seconds"] = str(dt.second)
 
         return time_block
 
@@ -103,7 +103,7 @@ class TweetMiner:
 
         motorway = motorway.group(0)
         motorway_number = motorway.replace("M", "", 1)
-        return int(motorway_number)
+        return motorway_number
 
     def get_reason_for_incident(self):
         return self.payload_reason.lower()

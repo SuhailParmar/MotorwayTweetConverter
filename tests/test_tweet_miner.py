@@ -2,6 +2,7 @@ from pytest import raises
 from lib.tweet_miner import TweetMiner
 from json import loads
 
+
 class TestTweetMiner:
     """
     For the purpose of these tests we will be assigning values directly
@@ -21,11 +22,11 @@ class TestTweetMiner:
             "Full details at https://t.co/nkWL91Ro1g (Updated every 5 minutes)"
 
     def test_motorway_from_screen_name(self):
-        assert self.tm.get_motorway_number() == 6
+        assert self.tm.get_motorway_number() == "6"
 
     def test_motorway_hidden_in_screen_name(self):
         self.tm.tweet["screen_name"] = "TrafficM6asasaas"
-        assert self.tm.get_motorway_number() == 6
+        assert self.tm.get_motorway_number() == "6"
 
     def test_lookup_error_in_screen_name(self):
         self.tm.tweet["screen_name"] = "SuhailParmar"
@@ -37,23 +38,23 @@ class TestTweetMiner:
         time_block = self.tm.convert_datetime_to_timeblock()
 
         assert time_block["time_timestamp"] == '2018-10-10T19:13:35'
-        assert time_block["time_day_numerical"] == 10
+        assert time_block["time_day"] == "10"
         assert time_block["time_day_worded"] == "Wed"
-        assert time_block["time_year"] == 2018
-        assert time_block["time_hour"] == 19
-        assert time_block["time_minutes"] == 13
-        assert time_block["time_seconds"] == 35
+        assert time_block["time_year"] == "2018"
+        assert time_block["time_hour"] == "19"
+        assert time_block["time_minutes"] == "13"
+        assert time_block["time_seconds"] == "35"
 
         self.tm.tweet["created_at"] = "Thu Apr 06 15:24:15 +0000 2017"
         time_block = self.tm.convert_datetime_to_timeblock()
 
         assert time_block["time_timestamp"] == '2017-04-06T15:24:15'
-        assert time_block["time_day_numerical"] == 6
+        assert time_block["time_day"] == "6"
         assert time_block["time_day_worded"] == "Thu"
-        assert time_block["time_year"] == 2017
-        assert time_block["time_hour"] == 15
-        assert time_block["time_minutes"] == 24
-        assert time_block["time_seconds"] == 15
+        assert time_block["time_year"] == "2017"
+        assert time_block["time_hour"] == "15"
+        assert time_block["time_minutes"] == "24"
+        assert time_block["time_seconds"] == "15"
 
     def test_get_reported_junction(self):
         self.tm.payload_location = "#M6 J2 southbound exit (Coventry)"
@@ -134,17 +135,17 @@ class TestTweetMiner:
         event = self.tm.return_event_from_tweet()
         event = loads(event)
 
-        assert event["motorway"] == 6
-        assert event["id"] == 1
+        assert event["motorway"] == "6"
+        assert event["event_id"] == 1
         assert event["junction"] == [2]
         assert event["direction"] == 's'
         assert event["closest_cities"] == ["Coventry"]
         assert event["reason"] == "broken down vehicle"
 
         assert event["time_timestamp"] == "2018-10-10T19:13:35"
-        assert event["time_day_numerical"] == 10
+        assert event["time_day"] == "10"
         assert event["time_day_worded"] == "Wed"
-        assert event["time_year"] == 2018
-        assert event["time_hour"] == 19
-        assert event["time_minutes"] == 13
-        assert event["time_seconds"] == 35
+        assert event["time_year"] == "2018"
+        assert event["time_hour"] == "19"
+        assert event["time_minutes"] == "13"
+        assert event["time_seconds"] == "35"
