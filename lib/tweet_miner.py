@@ -149,9 +149,13 @@ class TweetMiner:
         event["direction"] = self.get_direction_of_incident()
         event["closest_cities"] = self.get_nearest_cities()
         event["reason"] = self.get_reason_for_incident()
-        event["extra_information"] = ""
+        event["extra_information"] = []
 
-        time_block = self.convert_datetime_to_timeblock()
+        try:
+            time_block = self.convert_datetime_to_timeblock()
+        except DatetimeException:
+            raise InvalidPayloadException("Probably toll")
+
         event.update(time_block)
 
         tm_logger.info("Successfully mined tweet!")

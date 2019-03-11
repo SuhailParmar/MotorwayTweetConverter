@@ -39,7 +39,7 @@ def callback(ch, method, properties, body):
         mq.publish_tweet_to_queue(event)
 
     except (MissingPayloadException, InvalidPayloadException,
-            FailurePostToAPI) as exception:
+            FailurePostToAPI, LookupError) as exception:
         reason = exception.msg  # Extract the exception message
         # Log out the event once and dead letter tweet
         main_logger.error(reason)
