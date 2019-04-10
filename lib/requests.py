@@ -43,9 +43,9 @@ class Requests():
         content = loads(request.content)
         return content['access_token']
 
+    """
     def post_to_api(self, data):
         token = self.get_auth_token()
-
         response = post(self.uri, headers={
             'Content-Type': 'application/json',
             'Authorization': "Bearer {0}".format(token),
@@ -58,3 +58,7 @@ class Requests():
 
         mq_logger.info('Successfully Posted event to the API!')
         return response.status_code
+    """
+
+    def post_to_api(self, data):
+        raise FailurePostToAPI(201, "")
