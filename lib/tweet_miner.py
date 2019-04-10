@@ -76,9 +76,12 @@ class TweetMiner:
         direction = pattern.search(value)
 
         if not direction:
-            tm_logger.error('Couldnt extract direction from payload:{}'.format(
+            pattern = compile("clockwise")
+            direction = pattern.search(value)
+            if not direction:
+                tm_logger.error('Couldnt extract direction from payload:{}'.format(
                 value))
-            raise LookupError
+                raise LookupError
 
         direction = direction.group(0)
         return direction[0]  # The first letter suffices (nesw)
